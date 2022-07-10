@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>1617</title>
+  </head>
+  <script type="application/json" id="data">
+    {
+      "@id": "",
+      "relay": "ws://nostr.rocks:1617"
+    }
+  </script>
+
+  <script type="module">
+    import { render, html } from 'https://cdn.skypack.dev/spux'
+    import 'https://cdn.skypack.dev/dior'
+
+    console.log(di.data)
+
+    const params = new URLSearchParams(window.location.search)
+
+    console.log(params)
+
+    var pubkey =
+      params.get('id') ||
+      'fd9c1ae5446be8eb6159a93facb8de9d686f81dddeab5dcec9b5334e2f7c585c'
+
+    var events = []
+
+    var relay = di.data.relay
+    let socket = new WebSocket(relay)
+
+    socket.onopen = function (e) {
+      console.log('[open] Connection established')
+      console.log('Sending to server')
+      var msg = '["REQ", "tail", { "authors": ["' + pubkey + '"] } ]'
+      console.log('msg', msg)
+      socket.send(msg)
+    }
+
+    socket.onmessage = function (event) {
+      console.log(`[message] Data received from server: ${event.data}`)
+      events.push(event.data)
+      renderAll()
+    }
+
+    socket.onclose = function (event) {
+      if (event.wasClean) {
+        console.log(
+          `[close] Connection closed cleanly, code=${event.code} reason=${event.reason}`
+        )
+      } else {
+        // e.g. server process killed or network down
+        // event.code is usually 1006 in this case
+        console.log('[close] Connection died')
+      }
+    }
+
+    socket.onerror = function (error) {
+      console.log(`[error] ${error.message}`)
+    }
+
+    function renderAll () {
+      render(
+        html`
+          <pre>
+    Relay: ${di.data.relay} ${'\n'}
+
+              ${events.map(i => {
+              return html`
+                ${i} ${'\n'}
+              `
+            })}
+              </pre
+          >
+        `,
+        document.body
+      )
+    }
+
+    renderAll()
+  </script>
+  <body></body>
+</html>
