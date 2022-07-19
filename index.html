@@ -91,7 +91,11 @@
               Pubkey: ${i.pubkey} <br />
               Created At: ${i.created_at} <br />
               Commit:
-              <a href="${git}/tree/${i.content}" target="_blank"
+              <a
+                href="${git}${i.content === 'genesis'
+                  ? ''
+                  : '/tree/' + i.content}"
+                target="_blank"
                 >${i.content}</a
               >
               <br />
