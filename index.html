@@ -30,6 +30,7 @@
     var events = []
 
     var relay = di.data.relay
+    var git = null
     let socket = new WebSocket(relay)
 
     socket.onopen = function (e) {
@@ -42,7 +43,20 @@
 
     socket.onmessage = function (event) {
       console.log(`[message] Data received from server: ${event.data}`)
-      events.push(event.data)
+      // var event = JSON.parse(event)
+      var data = JSON.parse(event.data)
+      console.log(data[2])
+      for (var i = 0; i < data[2].tags.length; i++) {
+        let tag = data[2].tags[i]
+        if (tag[0] === 'g') {
+          data[2].git = tag[1]
+          git = tag[1].replace('.git', '')
+        }
+        if (tag[0] === 'c') {
+          data[2].c = tag[1]
+        }
+      }
+      events.push(data[2])
       renderAll()
     }
 
@@ -67,14 +81,27 @@
         html`
           <pre>
     Relay: ${di.data.relay} ${'\n'}
+    <hr />
 
               ${events.map(i => {
-              return html`
-                ${i} ${'\n'}
-              `
-            })}
-              </pre
-          >
+            return html`
+              <h5>${i.id}</h5>
+              Pubkey: ${i.pubkey} <br />
+              Created At: ${i.created_at} <br />
+              Commit:
+              <a href="${git}/tree/${i.content}" target="_blank"
+                >${i.content}</a
+              >
+              <br />
+              Commitment: ${i.c} <br />
+              Git: <a href="${git}" target="_blank">${git}</a> <br />
+              Sig: ${i.sig} <br />
+              <br />
+              Raw: ${JSON.stringify(i, null, 2)}
+              <hr />
+            `
+          })}
+              </pre>
         `,
         document.body
       )
